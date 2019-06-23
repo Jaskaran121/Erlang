@@ -1,7 +1,7 @@
 %% @author JASKARN SINGH
 %% @doc @todo Add description to controller.
 
--module(controller).
+-module(money).
 
 %% ====================================================================
 %% API functions
