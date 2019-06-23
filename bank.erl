@@ -7,10 +7,14 @@ startprocessBank(MasterPid, BankName, BankAmount) ->
     receive
       {From, CustomerName, CustomerAmount} ->
 	  if CustomerAmount < BankAmount ->
-        NewBankAmount = BankAmount - CustomerAmount,
-        From ! {'approve'};
+            NewBankAmount = BankAmount - CustomerAmount,
+            From ! {'approve'},
+            startprocessBank(MasterPid, BankName, NewBankAmount);
          true -> NewBankAmount = BankAmount,
-         From ! {'decline'}
-    end,
-	  startprocessBank(MasterPid, BankName, NewBankAmount)
+            From ! {'decline'},
+            startprocessBank(MasterPid, BankName, NewBankAmount)
+    end
+    after 2000 ->
+      timer:sleep(500),
+      MasterPid ! {"bank",BankName,BankAmount}
     end.

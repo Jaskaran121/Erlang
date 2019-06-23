@@ -36,22 +36,18 @@ listener(CustomersInfo,BanksInfo) ->
         end.
         
 readFile(Info, Identifier, BanksInfo) ->
-    whileSpawn(Info, Identifier,
-	       BanksInfo).                         %% 	get_Id(Pid).
+    whileSpawn(Info, Identifier,BanksInfo).
 
 whileSpawn([], Identifier, BanksInfo) -> ok;
 whileSpawn([H | T], Identifier, BanksInfo) ->
     if Identifier == "b" ->
        {Bankname, Bankamt} = H,
-	   BankPid = spawn(bank, startprocessBank,
-			   [self(), Bankname, Bankamt]),
+	   BankPid = spawn(bank, startprocessBank,[self(), Bankname, Bankamt]),
 	   register(Bankname, BankPid),
 	   whileSpawn(T, Identifier, BanksInfo);
        Identifier == "c" ->
 	   {CustomerName, CustomerAmount} = H,
-	   spawn(customer, startprocessCustomer,
-			       [self(), CustomerName, CustomerAmount,
-				BanksInfo]),
+	   spawn(customer, startprocessCustomer,[self(), CustomerName, CustomerAmount,BanksInfo]),
 	   whileSpawn(T, Identifier, BanksInfo);
        true -> ok
     end.
