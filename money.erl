@@ -14,21 +14,30 @@
 
 start() ->
     {ok, CustomersInfo} = file:consult("customers.txt"),
-    % io:fwrite("~w ~n", [CustomersInfo]),
     {ok, BanksInfo} = file:consult("banks.txt"),
     readFile(BanksInfo, "b", BanksInfo),
     readFile(CustomersInfo, "c", BanksInfo),
-    receive
-      {CustomerName, CustomerAmount} ->
-            io:fwrite("~p~p ~n", [CustomerName,CustomerAmount])
-	  end.
-    % readFile(CustomersInfo, "c", BankLength).
+    listener(CustomersInfo,BanksInfo).
 
+listener(CustomersInfo,BanksInfo) ->
+        receive
+                {CustomerName, CustomerAmount} ->
+                      {_,{_,BeforeLoanCustomerAmount}} = lists:keysearch(CustomerName, 1, CustomersInfo),
+                      if
+                            (CustomerAmount == 0) ->
+                                io:fwrite("~p has reached the objective of ~p dollar(s). Woo Hoo!~n",[CustomerName,BeforeLoanCustomerAmount]);
+                            true ->
+                                io:fwrite("~p was only able to borrow ~p dollar(s).Boo Hoo!~n",[CustomerName,CustomerAmount])
+                      end,
+                      listener(CustomersInfo,BanksInfo);
+                {_,BankName,BankAmount} ->
+                        io:fwrite("~p has ~p dollar(s) remaining.~n",[BankName,BankAmount]),
+                        listener(CustomersInfo,BanksInfo)
+        end.
+        
 readFile(Info, Identifier, BanksInfo) ->
     whileSpawn(Info, Identifier,
-	       BanksInfo).    %%   	Pid = spawn(fun() -> while(Info) end),
-
-                           %% 	get_Id(Pid).
+	       BanksInfo).                         %% 	get_Id(Pid).
 
 whileSpawn([], Identifier, BanksInfo) -> ok;
 whileSpawn([H | T], Identifier, BanksInfo) ->
@@ -40,10 +49,10 @@ whileSpawn([H | T], Identifier, BanksInfo) ->
 	   whileSpawn(T, Identifier, BanksInfo);
        Identifier == "c" ->
 	   {CustomerName, CustomerAmount} = H,
-	   CustomerPid = spawn(customer, startprocessCustomer,
+	   spawn(customer, startprocessCustomer,
 			       [self(), CustomerName, CustomerAmount,
 				BanksInfo]),
 	   whileSpawn(T, Identifier, BanksInfo);
-       true -> io:fwrite("Error")
+       true -> ok
     end.
 
